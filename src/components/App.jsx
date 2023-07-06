@@ -14,11 +14,10 @@ export const App = () => {
   const [page, setPage] = useState(1);
   const [loaderVisible, setLoaderVisible] = useState(false);
   const [isFound, setIsFound] = useState(true);
+  console.log(totalHits);
 
   useEffect(() => {
     if (!searchQuery) return;
-
-    console.log(totalHits);
 
     const fetchData = async () => {
       if (page === 1) {
@@ -51,7 +50,7 @@ export const App = () => {
     };
 
     fetchData();
-  }, [page, searchQuery, totalHits]);
+  }, [page, searchQuery]);
 
   const handleSearchSubmit = search => {
     if (search !== searchQuery) {
@@ -64,7 +63,7 @@ export const App = () => {
   };
 
   const loadMoreImages = () => {
-    setPage(page + 1);
+    setPage(prevPage => prevPage + 1);
   };
 
   return (
