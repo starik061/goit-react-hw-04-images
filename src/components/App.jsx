@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppStyle } from './App.styled';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -6,106 +6,85 @@ import { getImagesByQuery } from './imageAPI/api';
 import { LoadMoreButton } from './LoadMoreButton/LoadMoreButton';
 import { Loader } from './Loader/Loader';
 
-export class App extends Component {
-  state = {
-    searchQuery: '',
-    imagesData: [],
-    totalHits: 0,
-    loadMoreVisible: false,
-    page: 1,
-    loaderVisible: false,
-    isFound: true,
-  };
+export const App = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [imagesData, setImagesData] = useState([]);
+  const [totalHits, setTotalHits] = useState(0);
+  const [loadMoreVisible, setLoadMoreVisible] = useState(false);
+  const [page, setPage] = useState(1);
+  const [loaderVisible, setLoaderVisible] = useState(false);
+  const [isFound, setIsFound] = useState(true);
 
-  componentDidMount() {}
+  useEffect(() => {
+    if (!searchQuery) return;
+    const fetchData = async () => {
+      if (page === 1) {
+        setLoaderVisible(true);
+        setIsFound(true);
 
-  async componentDidUpdate(prevProps, prevState) {
-    //Это условие сработает при новом поисковом запросе и обнулив массив изображений в стэйте заполнит его новым массивом с бэкэнда
-    if (
-      prevState.searchQuery !== this.state.searchQuery &&
-      this.state.page === 1
-    ) {
-      this.setState({ loaderVisible: true, isFound: true });
+        const { totalHits, hits } = await getImagesByQuery(searchQuery, page);
 
-      const { totalHits, hits } = await getImagesByQuery(
-        this.state.searchQuery,
-        this.state.page
-      );
-      setTimeout(() => {
-        this.setState({
-          imagesData: hits,
-          totalHits,
-          loadMoreVisible: totalHits > 12 ? true : false,
-          loaderVisible: false,
-          isFound: !!hits.length,
-        });
-      }, 600);
-    }
+        setTimeout(() => {
+          setImagesData(hits);
+          setTotalHits(totalHits);
+          setLoadMoreVisible(totalHits > 12 ? true : false);
+          setLoaderVisible(false);
+          setIsFound(!!hits.length);
+        }, 600);
+      }
 
-    //Это условие сработает при нажатии Load more, увеличится страница и в массив добавятся следующие 12 элементов
-    if (
-      prevState.page !== this.state.page &&
-      prevState.searchQuery === this.state.searchQuery
-    ) {
-      this.setState({ loaderVisible: true });
+      if (page !== 1) {
+        setLoaderVisible(true);
 
-      const { totalHits, hits } = await getImagesByQuery(
-        this.state.searchQuery,
-        this.state.page
-      );
+        const { totalHits, hits } = await getImagesByQuery(searchQuery, page);
 
-      setTimeout(() => {
-        this.setState({
-          imagesData: [...prevState.imagesData, ...hits],
-          totalHits,
-          loadMoreVisible:
-            totalHits > prevState.imagesData.length + 12 ? true : false,
-          loaderVisible: false,
-        });
-      }, 600);
-    }
-  }
+        setTimeout(() => {
+          setImagesData(prevImagesData => [...prevImagesData, ...hits]);
+          setTotalHits(totalHits);
+          setLoadMoreVisible(totalHits > imagesData.length + 12 ? true : false);
+          setLoaderVisible(false);
+        }, 600);
+      }
+    };
 
-  handleSearchSubmit = searchQuery => {
-    if (searchQuery !== this.state.searchQuery) {
-      this.setState({
-        searchQuery,
-        imagesData: [],
-        totalHits: 0,
-        loadMoreVisible: false,
-        page: 1,
-      });
+    fetchData();
+  }, [page, searchQuery]);
+
+  const handleSearchSubmit = search => {
+    if (search !== searchQuery) {
+      setSearchQuery(search);
+      setImagesData([]);
+      setTotalHits(0);
+      setLoadMoreVisible(false);
+      setPage(1);
     }
   };
 
-  loadMoreImages = () => {
-    this.setState(prevState => {
-      return { page: prevState.page + 1 };
-    });
+  const loadMoreImages = () => {
+    setPage(page + 1);
   };
-  render() {
-    return (
-      <AppStyle>
-        <Searchbar onSearchSubmit={this.handleSearchSubmit} />
-        {this.state.isFound ? (
-          <ImageGallery galleryImages={this.state.imagesData} />
-        ) : (
-          <div style={{ margin: '0 auto' }}>
-            <p>Nothing found</p>
-          </div>
-        )}
 
-        {this.state.loaderVisible && (
-          <div style={{ margin: '0 auto' }}>
-            <Loader />
-          </div>
-        )}
-        {this.state.loadMoreVisible && (
-          <div style={{ margin: '0 auto' }}>
-            <LoadMoreButton onLoadMoreBtnClick={this.loadMoreImages} />
-          </div>
-        )}
-      </AppStyle>
-    );
-  }
-}
+  return (
+    <AppStyle>
+      <Searchbar onSearchSubmit={handleSearchSubmit} />
+      {isFound ? (
+        <ImageGallery galleryImages={imagesData} />
+      ) : (
+        <div style={{ margin: '0 auto' }}>
+          <p>Nothing found</p>
+        </div>
+      )}
+
+      {loaderVisible && (
+        <div style={{ margin: '0 auto' }}>
+          <Loader />
+        </div>
+      )}
+      {loadMoreVisible && (
+        <div style={{ margin: '0 auto' }}>
+          <LoadMoreButton onLoadMoreBtnClick={loadMoreImages} />
+        </div>
+      )}
+    </AppStyle>
+  );
+};
