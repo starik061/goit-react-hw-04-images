@@ -17,7 +17,9 @@ export const App = () => {
 
   useEffect(() => {
     if (!searchQuery) return;
+
     console.log(totalHits);
+
     const fetchData = async () => {
       if (page === 1) {
         setLoaderVisible(true);
@@ -49,7 +51,7 @@ export const App = () => {
     };
 
     fetchData();
-  }, [page, searchQuery]);
+  }, [page, searchQuery, totalHits]);
 
   const handleSearchSubmit = search => {
     if (search !== searchQuery) {
