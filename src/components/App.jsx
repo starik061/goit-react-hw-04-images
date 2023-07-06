@@ -17,6 +17,7 @@ export const App = () => {
 
   useEffect(() => {
     if (!searchQuery) return;
+    console.log(totalHits);
     const fetchData = async () => {
       if (page === 1) {
         setLoaderVisible(true);
@@ -41,7 +42,7 @@ export const App = () => {
         setTimeout(() => {
           setImagesData(prevImagesData => [...prevImagesData, ...hits]);
           setTotalHits(totalHits);
-          setLoadMoreVisible(totalHits > imagesData.length + 12 ? true : false);
+          setLoadMoreVisible(page < Math.ceil(totalHits / 12) ? true : false);
           setLoaderVisible(false);
         }, 600);
       }
