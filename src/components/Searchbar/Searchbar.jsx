@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import {
   SearchbarStyle,
   SearFormStyle,
@@ -8,47 +8,39 @@ import {
 import { FcSearch } from 'react-icons/fc';
 import { IconContext } from 'react-icons';
 
-export class Searchbar extends Component {
-  state = { searchQuery: '' };
+export const Searchbar = ({ onSearchSubmit }) => {
+  const [searchQuery, setSearchQuery] = useState('');
 
-  componentDidUpdate(prevProps, prevState) {}
-
-  handleSearchQuery = event => {
-    this.setState({
-      searchQuery: event.target.value,
-    });
+  const handleSearchQuery = event => {
+    setSearchQuery(event.target.value);
   };
-  resetSearchInput = () => {
-    this.setState({
-      searchQuery: '',
-    });
+  const resetSearchInput = () => {
+    setSearchQuery('');
   };
 
-  render() {
-    return (
-      <SearchbarStyle>
-        <SearFormStyle
-          onSubmit={event => {
-            event.preventDefault();
-            this.props.onSearchSubmit(this.state.searchQuery);
-            this.resetSearchInput();
-          }}
-        >
-          <SearchFormInputStyle
-            type="text"
-            autocomplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            onChange={this.handleSearchQuery}
-            value={this.state.searchQuery}
-          />
-          <SearchFormButtonStyle type="submit">
-            <IconContext.Provider value={{ size: '24px' }}>
-              <FcSearch />
-            </IconContext.Provider>
-          </SearchFormButtonStyle>
-        </SearFormStyle>
-      </SearchbarStyle>
-    );
-  }
-}
+  return (
+    <SearchbarStyle>
+      <SearFormStyle
+        onSubmit={event => {
+          event.preventDefault();
+          onSearchSubmit(searchQuery);
+          resetSearchInput();
+        }}
+      >
+        <SearchFormInputStyle
+          type="text"
+          autocomplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          onChange={handleSearchQuery}
+          value={searchQuery}
+        />
+        <SearchFormButtonStyle type="submit">
+          <IconContext.Provider value={{ size: '24px' }}>
+            <FcSearch />
+          </IconContext.Provider>
+        </SearchFormButtonStyle>
+      </SearFormStyle>
+    </SearchbarStyle>
+  );
+};
